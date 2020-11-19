@@ -10,7 +10,7 @@
 library(shiny)
 
 # Define UI for application that draws a histogram
-shinyUI(navbarPage("COVID-19 Votes"
+shinyUI(navbarPage("COVID-19 Explorer"
                    ,tabPanel("Plot1" # NEED BETTER TITLE
 
     # Application title
@@ -93,21 +93,5 @@ shinyUI(navbarPage("COVID-19 Votes"
     ,plotOutput("plot1", height = "1000px")
 
 )
-,tabPanel("About"
-
-,tags$p("Test Text")
-,tags$html(
-    tags$head(
-        tags$title('My first page')
-    ),
-    tags$body(
-        h1('My first heading'),
-        p('My first paragraph, with some ',
-          strong('bold'),
-          ' text.'),
-        div(id='myDiv', class='simpleDiv',
-            'Here is a div with some attributes.')
-    )
-)
-          )
+,tabPanel("About")
 ))

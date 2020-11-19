@@ -128,7 +128,7 @@ compute_epi <- function(
 
 # ---- load-data ---------------------------------------------------------------
 
-app_data <- read_rds(paste0("./data/app-data.rds"))
+app_data <- read_rds("./data-unshared/derived/app-data.rds")
 
 # ---- shiny-server ------------------------------------------------------------
 # Define server logic required to draw a histogram
