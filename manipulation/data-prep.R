@@ -1,7 +1,5 @@
 # This script needs to run before publishing App.  Opens the local versions
 # of needed data and places them into a folder in the app
-# This file preps Data for Shiny App.
-# final file should be loaded into app
 
 rm(list=ls(all=TRUE)) #Clear the memory of variables from previous run.
 # This is not called by knitr, because it's above the first chunk.
