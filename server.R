@@ -139,6 +139,7 @@ shinyServer(function(input, output) {
     create_graph <- function(){
         political_grouping <- input$grouping
         focus_metric <- c(input$xaxis, input$yaxis)
+        lock_scales <- input$freescalesradio
 
         if(input$grouping == "region"){
             color_fill <- region_colors
@@ -180,7 +181,7 @@ shinyServer(function(input, output) {
                scale_color_manual(values = color_fill) +
                geom_point(shape = 21, color = "grey30", alpha = .2, size = 7)+
                geom_text(alpha = .9, size = 3)+
-               facet_wrap(.~date, scales = "free_y")+
+               facet_wrap(.~date, scales = lock_scales)+
                labs(x = focus_metric[1], y = focus_metric[2])
            return(g4)
 

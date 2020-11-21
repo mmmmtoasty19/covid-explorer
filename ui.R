@@ -26,7 +26,20 @@ shinyUI(navbarPage("COVID-19 Explorer"
                 ,start = "2020-03-15"
                 ,end = Sys.Date()
                 ,min = "2020-03-15"
-            ))
+            )
+            ,radioButtons(
+              inputId = "freescalesradio"
+              ,label = "Free Axis Scale"
+              ,choices = c(
+                "X" = "free_x"
+                ,"Y" = "free_y"
+                ,"Both" = "free"
+                ,"Neither" = "fixed"
+              )
+              ,inline = TRUE
+              ,selected = "free_y"
+            )
+            )
             ,column(4,
                 selectInput(
                 inputId = "grouping"
