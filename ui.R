@@ -27,6 +27,12 @@ shinyUI(navbarPage("COVID-19 Explorer"
                 ,end = Sys.Date()
                 ,min = "2020-03-15"
             )
+            ,numericInput(
+              inputId = "dateinput1"
+              ,label = "Days Between Facets"
+              ,value = 7
+              ,min = 1
+            )
             ,radioButtons(
               inputId = "freescalesradio"
               ,label = "Free Axis Scale"
@@ -55,6 +61,10 @@ shinyUI(navbarPage("COVID-19 Explorer"
                     ,"state_leadership"
                     )
                 )
+                ,numericInput(
+                  "height"
+                  ,"Plot Height (pixels)"
+                  ,min = 500, max = 3000, value = 1000)
                 ,downloadButton(
                     "downloadplot"
                     ,label = "Download Plot"
@@ -102,8 +112,7 @@ shinyUI(navbarPage("COVID-19 Explorer"
                     )
 
     )
-
-    ,plotOutput("plot1", height = "1000px")
+    ,plotOutput("plot1", height = "1000px" )
 
 )
 ,tabPanel("About")

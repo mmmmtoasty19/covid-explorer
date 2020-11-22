@@ -140,6 +140,7 @@ shinyServer(function(input, output) {
         political_grouping <- input$grouping
         focus_metric <- c(input$xaxis, input$yaxis)
         lock_scales <- input$freescalesradio
+        date_seq <- input$dateinput1
 
         if(input$grouping == "region"){
             color_fill <- region_colors
@@ -159,7 +160,7 @@ shinyServer(function(input, output) {
                     )
                 ,long = T
             ) %>% filter(
-                date %in% as_date(format(seq(input$date1[1],input$date1[2], 7)))
+                date %in% as_date(format(seq(input$date1[1],input$date1[2], date_seq)))
                 ) %>%
             filter(metric %in% focus_metric) %>%
             mutate(
@@ -181,14 +182,17 @@ shinyServer(function(input, output) {
                scale_color_manual(values = color_fill) +
                geom_point(shape = 21, color = "grey30", alpha = .2, size = 7)+
                geom_text(alpha = .9, size = 3)+
-               facet_wrap(.~date, scales = lock_scales)+
+               facet_wrap(.~date, scales = lock_scales, ncol = 6)+
                labs(x = focus_metric[1], y = focus_metric[2])
            return(g4)
 
     }
 
 
-    output$plot1 <- renderPlot({
+    output$plot1 <- renderPlot(
+        height = function() input$height,
+        {
+
         create_graph()
     })
 
