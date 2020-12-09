@@ -11,9 +11,8 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 shinyUI(navbarPage("COVID-19 Explorer"
-                   ,tabPanel("Plot1" # NEED BETTER TITLE
+                   ,tabPanel("Bubbles" # NEED BETTER TITLE
 
-    # Application title
 
 
 
@@ -115,5 +114,70 @@ shinyUI(navbarPage("COVID-19 Explorer"
     ,plotOutput("plot1", height = "1000px" )
 
 )
+,tabPanel("Line"
+          ,fluidRow(
+            column(
+              4
+              ,selectInput(
+                inputId = "metric"
+                ,label = "Choose Metric"
+                ,choices = c(
+                  "Cases (7-day average)"
+                  ,"Cases (7DA/100K)"
+                  ,"Cases (cumulative)"
+                  ,"Cases (cum/100K)"
+                  ,"Deaths (7-day average)"
+                  ,"Deaths (7DA/100K)"
+                  ,"Deaths (cumulative)"
+                  ,"Deaths (cum/100K)"
+                  ,"Tests (7-day average)"
+                  ,"Tests (7DA/100K)"
+                  ,"Tests (cumulative)"
+                  ,"Tests (cum/100K)"
+                )
+                ,selected = "Cases (7DA/100K)"
+              )
+            )
+            ,column(
+              4
+              ,checkboxInput(
+                inputId = "facet_graph"
+                ,label = "Facet Graph"
+              )
+              ,conditionalPanel(
+                condition = "input.facet_graph == true"
+                ,selectInput(
+                  inputId  = "facet_graph_choice"
+                  ,label   = "Choose Facet"
+                  ,choices = c(
+                    "Region"                        = "region"
+                    ,"Division"                     = "division"
+                    ,"Governor Affiliation"         = "governor_political_affiliation"
+                    ,"State Leadership Affiliation" = "state_leadership"
+                    ,"Winner 2016"                  = "winner_2016"
+                    ,"Winner 2020"                  = "winner_2020_pres"
+                  )
+                )
+              )
+            )
+            ,column(4,
+                    selectInput(
+                      inputId = "line_color"
+                      ,label = "Chose Line Color"
+                      ,choices = c(
+                        "Region"                        = "region"
+                        ,"Division"                     = "division"
+                        ,"Governor Affiliation"         = "governor_political_affiliation"
+                        ,"State Leadership Affiliation" = "state_leadership"
+                        ,"Winner 2016"                  = "winner_2016"
+                        ,"Winner 2020"                  = "winner_2020_pres"
+                      )
+                    )
+            )
+
+          )
+          ,tableOutput("test_table")
+          )
+
 ,tabPanel("About")
 ))

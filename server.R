@@ -131,8 +131,7 @@ compute_epi <- function(
 app_data <- read_rds("./data-unshared/derived/app-data.rds")
 
 # ---- shiny-server ------------------------------------------------------------
-# Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 # browser()
 
 
@@ -205,6 +204,29 @@ shinyServer(function(input, output) {
             ggsave(file, plot = create_graph() , device = "png"
                    ,width = 15, height = 10, units = 'in', dpi = 300)
         }
+    )
+
+
+    # ---- line graph ----------------------------------------------------------
+
+    line_graph_data <- reactive({
+       d <-  app_data %>%
+            compute_epi(
+                c("date","state","region", "country")
+                ,long = T
+                ) %>%
+           filter(metric %in% input$metric)
+       return(d)
+
+        # NOT USED CURRENTLY, just using one meteric
+            # mutate(
+            #     metric = fct_relevel(metric, focus_metrics) %>% fct_drop()
+            # )
+    })
+
+
+    output$test_table <- renderTable(
+        line_graph_data()
     )
 
 
