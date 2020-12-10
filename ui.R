@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(plotly)
 
 # Define UI for application that draws a histogram
 shinyUI(navbarPage("COVID-19 Explorer"
@@ -176,7 +177,7 @@ shinyUI(navbarPage("COVID-19 Explorer"
             )
 
           )
-          ,tableOutput("test_table")
+          ,plotlyOutput("linegraph")
           )
 
 ,tabPanel("About")

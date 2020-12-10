@@ -8,6 +8,7 @@ cat("\f") # clear console when working in RStudio
 library(shiny)
 library(tidyverse)
 library(lubridate)
+library(plotly)
 #---- load-sources ------------------------------------------------------------
 
 
@@ -210,9 +211,17 @@ shinyServer(function(input, output, session) {
     # ---- line graph ----------------------------------------------------------
 
     line_graph_data <- reactive({
+        if(input$facet_graph_choice == input$line_color){
+            facet_group <- NULL
+        } else if(input$facet_graph) {
+            facet_group <- input$facet_graph_choice
+        } else {
+            facet_group <- NULL
+        }
+
        d <-  app_data %>%
             compute_epi(
-                c("date","state","region", "country")
+                c("date","state","country", input$line_color, facet_group)
                 ,long = T
                 ) %>%
            filter(metric %in% input$metric)
@@ -224,10 +233,47 @@ shinyServer(function(input, output, session) {
             # )
     })
 
+    line_graph <- reactive({
+        if(input$line_color == "region"){
+            color_fill <- region_colors
+        } else {
+            color_fill <- party_colors
+        }
 
-    output$test_table <- renderTable(
-        line_graph_data()
-    )
+        g <- line_graph_data() %>%
+            highlight_key(~state) %>%
+            ggplot(aes(x = date, y = value, group = state, color = .data[[input$line_color]])) +
+            geom_line() +
+            scale_x_date(date_breaks = "2 month", date_labels = "%b") +
+            scale_color_manual(values = color_fill) +
+            labs(
+                x  = ""
+                ,y = input$metric
+            )
+        return(g)
+    })
+
+
+    output$linegraph <- renderPlotly({
+        if(input$facet_graph){
+             g <- line_graph() +
+                facet_wrap(.~.data[[input$facet_graph_choice]])
+        } else {
+             g <- line_graph()
+        }
+
+        gplotly <- g %>%
+            ggplotly(tooltip = "state", height = 700) %>%
+            highlight(
+                on = "plotly_click"
+                ,off = "plotly_doubleclick"
+                ,selected = attrs_selected(showlegend = FALSE)
+            )
+
+        return(gplotly)
+
+
+    })
 
 
 
