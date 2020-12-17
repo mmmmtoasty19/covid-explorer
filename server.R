@@ -8,6 +8,7 @@ cat("\f") # clear console when working in RStudio
 library(shiny)
 library(tidyverse)
 library(lubridate)
+library(plotly)
 #---- load-sources ------------------------------------------------------------
 
 
@@ -46,6 +47,22 @@ party_colors <- c(
     ,"Republican" = "#E9141D"
 
 )
+
+division_colors <- c(
+    "Pacific"             = "#1B9E77"
+    ,"Mountain"           = "#D95F02"
+    ,"New England"        = "#7570B3"
+    ,"West North Central" = "#E7298A"
+    ,"East North Central" = "#66A61E"
+    ,"Middle Atlantic"    = "#E6AB02"
+    ,"West South Central" = "#A6761D"
+    ,"South Atlantic"     = "#666666"
+    ,"East South Central" = "#1F78B4"
+)
+
+
+
+
 
 # ---- declare-functions ---------------------------
 metric_order <- c(
@@ -128,17 +145,18 @@ compute_epi <- function(
 
 # ---- load-data ---------------------------------------------------------------
 
-app_data <- read_rds("./data-unshared/derived/app-data.rds")
+app_data <- read_rds("./data-public/derived/app-data.rds")
 
 # ---- shiny-server ------------------------------------------------------------
-# Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
 # browser()
 
 
     create_graph <- function(){
         political_grouping <- input$grouping
         focus_metric <- c(input$xaxis, input$yaxis)
+        lock_scales <- input$freescalesradio
+        date_seq <- input$dateinput1
 
         if(input$grouping == "region"){
             color_fill <- region_colors
@@ -158,7 +176,7 @@ shinyServer(function(input, output) {
                     )
                 ,long = T
             ) %>% filter(
-                date %in% as_date(format(seq(input$date1[1],input$date1[2], 7)))
+                date %in% as_date(format(seq(input$date1[1],input$date1[2], date_seq)))
                 ) %>%
             filter(metric %in% focus_metric) %>%
             mutate(
@@ -180,14 +198,17 @@ shinyServer(function(input, output) {
                scale_color_manual(values = color_fill) +
                geom_point(shape = 21, color = "grey30", alpha = .2, size = 7)+
                geom_text(alpha = .9, size = 3)+
-               facet_wrap(.~date, scales = "free_y")+
+               facet_wrap(.~date, scales = lock_scales, ncol = 6)+
                labs(x = focus_metric[1], y = focus_metric[2])
            return(g4)
 
     }
 
 
-    output$plot1 <- renderPlot({
+    output$plot1 <- renderPlot(
+        height = function() input$height,
+        {
+
         create_graph()
     })
 
@@ -201,6 +222,99 @@ shinyServer(function(input, output) {
                    ,width = 15, height = 10, units = 'in', dpi = 300)
         }
     )
+
+
+    # ---- line graph ----------------------------------------------------------
+
+    line_graph_data <- reactive({
+        if(input$facet_graph_choice == input$line_color){
+            facet_group <- NULL
+        } else if(input$facet_graph) {
+            facet_group <- input$facet_graph_choice
+        } else {
+            facet_group <- NULL
+        }
+
+       d <-  app_data %>%
+            compute_epi(
+                c("date","state","country", input$line_color, facet_group)
+                ,long = T
+                ) %>%
+           filter(metric %in% input$metric)
+       return(d)
+
+        # NOT USED CURRENTLY, just using one meteric
+            # mutate(
+            #     metric = fct_relevel(metric, focus_metrics) %>% fct_drop()
+            # )
+    })
+
+    line_graph <- reactive({
+        if(input$line_color == "region"){
+            color_fill <- region_colors
+        } else if(input$line_color == "division"){
+            color_fill <- division_colors
+        } else {
+            color_fill <- party_colors
+        }
+
+        g <- line_graph_data() %>%
+            highlight_key(~state) %>%
+            {ggplot(.,aes(x = date, y = value, group = state, color = .data[[input$line_color]])) +
+            geom_line() +
+            scale_x_date(
+                date_breaks = "2 month"
+                ,date_labels = "%b"
+                ,limits = c(as.Date("2020-03-01"), max(line_graph_data()$date, na.rm = TRUE))) +
+            scale_color_manual(values = color_fill) +
+            labs(
+                x  = ""
+                ,y = input$metric
+            )}
+
+        if(input$line_smoother){
+            g <- g +
+                geom_smooth(
+                    aes(group = .data[[input$line_color]])
+                    ,method = "loess"
+                    ,se = FALSE
+                    )
+        }
+
+
+        return(g)
+    })
+
+
+    output$linegraph <- renderPlotly({
+        if(input$facet_graph && input$free_y_line){
+            facet_scale_line <- "fixed"
+        } else {
+            facet_scale_line <- "free_y"
+        }
+
+        if(input$facet_graph){
+             g <- line_graph() +
+                facet_wrap(
+                    .~.data[[input$facet_graph_choice]]
+                    ,scales = facet_scale_line
+                )
+        } else {
+             g <- line_graph()
+        }
+
+        gplotly <- g %>%
+            ggplotly(tooltip = "state", height = 700) %>%
+            highlight(
+                on = "plotly_click"
+                ,off = "plotly_doubleclick"
+                ,selected = attrs_selected(showlegend = FALSE)
+            )
+
+        return(gplotly)
+
+
+    })
 
 
 
