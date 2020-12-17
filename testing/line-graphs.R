@@ -119,17 +119,13 @@ ds_covid_vote <- ds_jh_state %>%
   mutate(state = factor(state))
 
 # ---- graphing ----------------------------------------------------------------
-focus_metrics <- c(
-  "Cases (7DA/100K)"
-  # ,"Deaths (7-day average)"
-  # ,"Tests (7-day average)"
-)
+focus_metrics <-  "Cases (7DA/100K)"
 
 
 
 
 d <- ds_covid_vote %>%
-  compute_epi(c("date","state","region", "country"), long = T) %>%
+  compute_epi(c("date","state","region", "country", "winner_2016"), long = T) %>%
   filter(metric %in% focus_metrics) %>%
   mutate(
     metric = fct_relevel(metric, focus_metrics) %>% fct_drop()
@@ -140,13 +136,32 @@ d <- ds_covid_vote %>%
 
 g <- d %>%
   highlight_key(~state) %>%
-  ggplot(aes(x = date, y = value, group = state, color = winner_2016)) +
+  {ggplot(.,aes(x = date, y = value, group = state, color = winner_2016)) +
   geom_line() +
-  facet_wrap(.~winner_2016)
-  # gghighlight::gghighlight(max(value,na.rm = TRUE) > 100)
+  facet_wrap(.~winner_2016) +
+  scale_x_date(date_breaks = "2 month", date_labels = "%b", limits = c(as.Date("2020-03-01"), max(d$date, na.rm = TRUE))) +
+  labs(
+    x  = NULL
+    ,y = focus_metrics
+  )}
+g
 
-gg <- g %>% ggplotly(tooltip = "state")
+gg <- g %>% ggplotly(tooltip = "state") %>%
+  highlight(on = "plotly_click", off = "plotly_doubleclick", selected = attrs_selected(showlegend = FALSE))
+gg
 
-highlight(gg,on = "plotly_click", selected = attrs_selected(showlegend = FALSE))
+
+test_graph <- function(d,color_in){
+
+  g <- d %>%
+    highlight_key(~state) %>%
+    ggplot(aes(x = date, y = value, group = state, color = .data[[color_in]])) +
+    geom_line() +
+    facet_wrap(.~.data[[color_in]])
+}
 
 
+test_graph(d, "winner_2016") %>% print()
+test_graph()
+
+test_

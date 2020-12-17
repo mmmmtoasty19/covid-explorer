@@ -53,6 +53,6 @@ ds_covid_vote <- ds_jh_state %>%
 # saves the combine data set into the app directory /data
 
 ds_covid_vote %>% write_rds(
-  "./data-unshared/derived/app-data.rds"
+  "./data-public/derived/app-data.rds"
   ,compress = "gz"
   )

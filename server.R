@@ -48,6 +48,22 @@ party_colors <- c(
 
 )
 
+division_colors <- c(
+    "Pacific"             = "#1B9E77"
+    ,"Mountain"           = "#D95F02"
+    ,"New England"        = "#7570B3"
+    ,"West North Central" = "#E7298A"
+    ,"East North Central" = "#66A61E"
+    ,"Middle Atlantic"    = "#E6AB02"
+    ,"West South Central" = "#A6761D"
+    ,"South Atlantic"     = "#666666"
+    ,"East South Central" = "#1F78B4"
+)
+
+
+
+
+
 # ---- declare-functions ---------------------------
 metric_order <- c(
     "n_cases_roll_7"         = "Cases (7-day average)"
@@ -129,7 +145,7 @@ compute_epi <- function(
 
 # ---- load-data ---------------------------------------------------------------
 
-app_data <- read_rds("./data-unshared/derived/app-data.rds")
+app_data <- read_rds("./data-public/derived/app-data.rds")
 
 # ---- shiny-server ------------------------------------------------------------
 shinyServer(function(input, output, session) {
@@ -236,28 +252,53 @@ shinyServer(function(input, output, session) {
     line_graph <- reactive({
         if(input$line_color == "region"){
             color_fill <- region_colors
+        } else if(input$line_color == "division"){
+            color_fill <- division_colors
         } else {
             color_fill <- party_colors
         }
 
         g <- line_graph_data() %>%
             highlight_key(~state) %>%
-            ggplot(aes(x = date, y = value, group = state, color = .data[[input$line_color]])) +
+            {ggplot(.,aes(x = date, y = value, group = state, color = .data[[input$line_color]])) +
             geom_line() +
-            scale_x_date(date_breaks = "2 month", date_labels = "%b") +
+            scale_x_date(
+                date_breaks = "2 month"
+                ,date_labels = "%b"
+                ,limits = c(as.Date("2020-03-01"), max(line_graph_data()$date, na.rm = TRUE))) +
             scale_color_manual(values = color_fill) +
             labs(
                 x  = ""
                 ,y = input$metric
-            )
+            )}
+
+        if(input$line_smoother){
+            g <- g +
+                geom_smooth(
+                    aes(group = .data[[input$line_color]])
+                    ,method = "loess"
+                    ,se = FALSE
+                    )
+        }
+
+
         return(g)
     })
 
 
     output$linegraph <- renderPlotly({
+        if(input$facet_graph && input$free_y_line){
+            facet_scale_line <- "fixed"
+        } else {
+            facet_scale_line <- "free_y"
+        }
+
         if(input$facet_graph){
              g <- line_graph() +
-                facet_wrap(.~.data[[input$facet_graph_choice]])
+                facet_wrap(
+                    .~.data[[input$facet_graph_choice]]
+                    ,scales = facet_scale_line
+                )
         } else {
              g <- line_graph()
         }
