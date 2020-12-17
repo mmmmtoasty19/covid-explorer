@@ -1,6 +1,7 @@
 # ---- load-libraries ----------------------------------------------------------
 library(shiny)
 library(plotly)
+library(shinythemes)
 
 # ---- globals -----------------------------------------------------------------
 
@@ -19,11 +20,13 @@ axis_choices <- c(
   ,"Tests (cum/100K)"
 )
 
+config <- config::get()
 
 # ---- shiny-UI ----------------------------------------------------------------
 shinyUI(
   navbarPage(
     "COVID-19 Explorer"
+    ,theme = shinytheme('paper')
     # ---- bubble-graph --------------------------------------------------------
     ,tabPanel(
       "Bubbles" # NEED BETTER TITLE
@@ -167,7 +170,7 @@ shinyUI(
     # ---- about ---------------------------------------------------------------
     ,tabPanel(
       "About"
-      ,htmlTemplate("www/html/about.html")
+      ,htmlTemplate("www/html/about.html", version = config$app_version)
     )
   )
 )

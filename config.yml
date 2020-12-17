@@ -5,5 +5,5 @@ default:
     path_ds_vote_pres_2020 : "../covid19-country-response/data-public/derived/us-2020-state-pres-results.rds"
 
     # Version
-    app_version            : 1.0.0
+    app_version            : 0.5.0
 
